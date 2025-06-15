@@ -1,4 +1,4 @@
-package com.tastybug;
+package com.tastybug.vaultpal;
 
 import io.github.jopenlibs.vault.Vault;
 import io.github.jopenlibs.vault.VaultConfig;

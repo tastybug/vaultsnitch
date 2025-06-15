@@ -1,4 +1,4 @@
-package com.tastybug;
+package com.tastybug.vaultpal;
 
 import fi.iki.elonen.NanoHTTPD;
 import java.io.IOException;
