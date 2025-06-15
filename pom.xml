@@ -12,6 +12,11 @@
             <artifactId>nanohttpd</artifactId>
             <version>2.3.1</version>
         </dependency>
+        <dependency>
+            <groupId>io.github.jopenlibs</groupId>
+            <artifactId>vault-java-driver</artifactId>
+            <version>6.2.0</version>
+        </dependency>
     </dependencies>
 
     <build>
