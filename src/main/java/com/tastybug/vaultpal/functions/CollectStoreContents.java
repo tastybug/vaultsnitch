@@ -11,10 +11,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-public class CollectStoreContents implements Function<FindKvStores.Result, CollectStoreContents.Result> {
+public class CollectStoreContents implements Function<CollectStores.Result, CollectStoreContents.Result> {
 
     @Override
-    public Result apply(FindKvStores.Result storesDiscoveryResult) {
+    public Result apply(CollectStores.Result storesDiscoveryResult) {
         try {
             if(!storesDiscoveryResult.isSuccess()) {
                 throw storesDiscoveryResult.getException();

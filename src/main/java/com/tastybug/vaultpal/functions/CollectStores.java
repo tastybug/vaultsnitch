@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-public class FindKvStores implements Function<Vault, FindKvStores.Result> {
+public class CollectStores implements Function<Vault, CollectStores.Result> {
 
     @Override
     public Result apply(Vault vault) {

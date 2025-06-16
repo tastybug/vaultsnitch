@@ -1,6 +1,6 @@
 package com.tastybug.vaultpal;
 
-import com.tastybug.vaultpal.functions.FindKvStores;
+import com.tastybug.vaultpal.functions.CollectStores;
 import com.tastybug.vaultpal.functions.CollectStoreContents;
 import io.github.jopenlibs.vault.SslConfig;
 import io.github.jopenlibs.vault.Vault;
@@ -67,7 +67,7 @@ public class VaultIT implements TestHelper {
         createSecret(logical, kvName, "subfolder/subsubfolder/test4", Map.of("username", "test4"));
         createSecret(logical, kv2Name, "folder/test5", Map.of("username", "test5"));
 
-        CollectStoreContents.Result result = new FindKvStores()
+        CollectStoreContents.Result result = new CollectStores()
                 .andThen(new CollectStoreContents())
                 .apply(vault);
 
@@ -84,7 +84,7 @@ public class VaultIT implements TestHelper {
     void canEnumerateKvStores() throws VaultException {
         String kvName2 = createKvStore(vault);
 
-        FindKvStores.Result result = new FindKvStores().apply(vault);
+        CollectStores.Result result = new CollectStores().apply(vault);
 
         assertThat(result.getKv2Mounts()).containsExactlyInAnyOrder("secret", kvName, kvName2);
     }
@@ -93,7 +93,7 @@ public class VaultIT implements TestHelper {
     void noStoresNoProblems() throws VaultException {
         disableCachedKvStores(vault);
 
-        CollectStoreContents.Result result = new FindKvStores()
+        CollectStoreContents.Result result = new CollectStores()
                 .andThen(new CollectStoreContents())
                 .apply(vault);
 
