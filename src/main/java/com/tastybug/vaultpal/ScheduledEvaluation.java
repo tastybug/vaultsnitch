@@ -17,8 +17,17 @@ public class ScheduledEvaluation {
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     private final AtomicReference<String> lastPayload = new AtomicReference<>();
+    private final Vault vault;
 
-    public ScheduledEvaluation() {
+    public ScheduledEvaluation() throws VaultException {
+        final VaultConfig config = new VaultConfig()
+                .address("http://127.0.0.1:8200")
+                .token("myroot");
+
+        System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "debug");
+        config.build();
+        vault = Vault.create(config);
+        lastPayload.set("");
     }
 
     public void startScheduledTask(long period, TimeUnit unit) {
@@ -34,23 +43,12 @@ public class ScheduledEvaluation {
 
     private String runEvaluations() {
         try {
-            final VaultConfig config = new VaultConfig()
-                    .address("http://127.0.0.1:8200")
-                    .token("myroot");
-
-            System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "debug");
-            config.build();
-            final Vault vault = Vault.create(config);
-
             PrometheusMeterRegistry registry = new CollectStores()
                     .andThen(new CollectStoreContents())
                     .andThen(new Evaluator())
                     .apply(vault);
             return registry.scrape();
 
-        } catch (VaultException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
         } catch (Throwable t) {
             t.printStackTrace();
             throw t;

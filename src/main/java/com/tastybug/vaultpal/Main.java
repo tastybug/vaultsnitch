@@ -1,6 +1,7 @@
 package com.tastybug.vaultpal;
 
 import fi.iki.elonen.NanoHTTPD;
+import io.github.jopenlibs.vault.VaultException;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -9,17 +10,16 @@ import static fi.iki.elonen.NanoHTTPD.Response.Status.OK;
 
 public class Main extends NanoHTTPD {
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, VaultException {
         new Main();
     }
 
-    private ScheduledEvaluation evaluation;
+    private final ScheduledEvaluation evaluation;
 
-    public Main() throws IOException {
+    public Main() throws IOException, VaultException {
         super(8080);
         start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
 
-        // Start the scheduled task
         evaluation = new ScheduledEvaluation();
         evaluation.startScheduledTask(10, TimeUnit.SECONDS);
     }
