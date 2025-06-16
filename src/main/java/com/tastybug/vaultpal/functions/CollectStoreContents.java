@@ -1,4 +1,4 @@
-package com.tastybug.vaultpal;
+package com.tastybug.vaultpal.functions;
 
 import io.github.jopenlibs.vault.Vault;
 import io.github.jopenlibs.vault.VaultException;
@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-public class TraverseStores implements Function<FindKvStores.Result, TraverseStores.Result> {
+public class CollectStoreContents implements Function<FindKvStores.Result, CollectStoreContents.Result> {
 
     @Override
     public Result apply(FindKvStores.Result storesDiscoveryResult) {

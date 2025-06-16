@@ -1,12 +1,10 @@
-package com.tastybug.vaultpal;
+package com.tastybug.vaultpal.functions;
 
 import io.github.jopenlibs.vault.Vault;
 import io.github.jopenlibs.vault.VaultException;
-import io.github.jopenlibs.vault.api.Logical;
 import io.github.jopenlibs.vault.api.sys.mounts.Mount;
 import io.github.jopenlibs.vault.api.sys.mounts.MountType;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
