@@ -28,6 +28,7 @@ public class FindKvStores implements Function<Vault, FindKvStores.Result> {
         return mounts.entrySet().stream()
                 .filter(e -> e.getValue().getType() == MountType.KEY_VALUE)
                 .map(Map.Entry::getKey)
+                .map(store -> store.replace("/", "")) // strip trailing slash
                 .toList();
     }
 
