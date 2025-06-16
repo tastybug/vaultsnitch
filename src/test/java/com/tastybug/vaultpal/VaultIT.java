@@ -1,12 +1,14 @@
 package com.tastybug.vaultpal;
 
-import com.tastybug.vaultpal.functions.CollectStores;
-import com.tastybug.vaultpal.functions.CollectStoreContents;
+import com.tastybug.vaultpal.collection.CollectStores;
+import com.tastybug.vaultpal.collection.CollectStoreContents;
+import com.tastybug.vaultpal.evaluation.Evaluator;
 import io.github.jopenlibs.vault.SslConfig;
 import io.github.jopenlibs.vault.Vault;
 import io.github.jopenlibs.vault.VaultConfig;
 import io.github.jopenlibs.vault.VaultException;
 import io.github.jopenlibs.vault.api.Logical;
+import io.micrometer.prometheus.PrometheusMeterRegistry;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -78,6 +80,10 @@ public class VaultIT implements TestHelper {
                 kvName + "/subfolder/subsubfolder/test4",
                 kv2Name + "/folder/test5"
         );
+
+        PrometheusMeterRegistry prom = new Evaluator().apply(result);
+        String scrape = prom.scrape();
+        assertThat(scrape).isNotEmpty();
     }
 
     @Test

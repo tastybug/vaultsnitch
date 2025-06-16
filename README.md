@@ -6,6 +6,6 @@ java17 or higher.
 
 
 ```shell
-docker run -d --rm --name vault -p 8200:8200 -e 'VAULT_DEV_ROOT_TOKEN_ID=myroot' hashicorp/vault:1.19
+docker run -d --name vault -p 8200:8200 -e 'VAULT_DEV_ROOT_TOKEN_ID=myroot' hashicorp/vault:1.19
 docker exec  -ti vault /bin/ash
 ```
