@@ -1,5 +1,6 @@
 package com.tastybug.vaultpal.collection;
 
+import com.tastybug.vaultpal.Main;
 import io.github.jopenlibs.vault.Vault;
 import io.github.jopenlibs.vault.VaultException;
 import io.github.jopenlibs.vault.api.Logical;
@@ -10,8 +11,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class CollectStoreContents implements Function<CollectStores.Result, CollectStoreContents.Result> {
+
+    private static final Logger LOGGER = Logger.getLogger(CollectStoreContents.class.getSimpleName());
 
     @Override
     public Result apply(CollectStores.Result storesDiscoveryResult) {
@@ -23,6 +28,7 @@ public class CollectStoreContents implements Function<CollectStores.Result, Coll
                     storesDiscoveryResult.getVault().logical(),
                     storesDiscoveryResult.getKv2Mounts()));
         } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Error while collecting secrets.", e);
             return new Result(e);
         }
     }

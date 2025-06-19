@@ -8,8 +8,12 @@ import io.github.jopenlibs.vault.api.sys.mounts.MountType;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class CollectStores implements Function<Vault, CollectStores.Result> {
+
+    private static final Logger LOGGER = Logger.getLogger(CollectStores.class.getSimpleName());
 
     @Override
     public Result apply(Vault vault) {
@@ -17,6 +21,7 @@ public class CollectStores implements Function<Vault, CollectStores.Result> {
             List<String> kv2Mounts = getKv2Mounts(vault);
             return new Result(vault, kv2Mounts);
         } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Error while enumerating stores.", e);
             return new Result(e);
         }
     }
