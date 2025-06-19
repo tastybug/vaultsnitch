@@ -11,17 +11,15 @@ import java.util.logging.Logger;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 
-public class Main extends NanoHTTPD {
+public class Main {
 
     private static final Logger LOGGER = Logger.getLogger(Main.class.getSimpleName());
 
-    public static void main(String[] args) throws IOException, VaultException {
+    public static void main(String[] args) throws IOException {
         new Main();
     }
 
-    public Main() throws IOException, VaultException {
-        super(Settings.getServerPort());
-
+    public Main() throws IOException {
         ScheduledEvaluation evaluation = new ScheduledEvaluation(this::createVaultClient);
         evaluation.startScheduledTask(Settings.getPollIntervalSeconds(), SECONDS);
 

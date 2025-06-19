@@ -1,6 +1,5 @@
 package com.tastybug.vaultpal.collection;
 
-import com.tastybug.vaultpal.Main;
 import io.github.jopenlibs.vault.Vault;
 import io.github.jopenlibs.vault.VaultException;
 import io.github.jopenlibs.vault.api.Logical;
