@@ -2,6 +2,14 @@
 
 Connects to a Vault instance and collects metadata for secrets that it is allowed to see.
 
+```mermaid
+sequenceDiagram
+    VaultPal->>Vault: collect visible secrets & metadata
+    VaultPal->>VaultPal: run policy checks
+    Prometheus->>VaultPal: access /metrics
+    Grafana->>Prometheus: show dashboard with policy data
+```
+
 Requires:
 * java11 or higher
 
@@ -20,12 +28,4 @@ Running the binary:
 VAULT_TOKEN_FILE=/Users/philipp/vault_token java -jar target/vaultpal-1.0-SNAPSHOT.jar
 # via token env variable
 VAULT_TOKEN=myroot java -jar target/vaultpal-1.0-SNAPSHOT.jar
-```
-
-```mermaid
-sequenceDiagram
-    VaultPal->>Vault: collect visible secrets & metadata
-    VaultPal->>VaultPal: run policy checks
-    Prometheus->>VaultPal: access /metrics
-    Grafana->>Prometheus: show dashboard with policy data
 ```
