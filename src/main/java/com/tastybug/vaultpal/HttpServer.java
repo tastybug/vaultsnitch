@@ -1,6 +1,8 @@
 package com.tastybug.vaultpal;
 
 import fi.iki.elonen.NanoHTTPD;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -11,10 +13,13 @@ import static java.util.Optional.ofNullable;
 
 public class HttpServer extends NanoHTTPD  {
 
+    private static final Logger logger = LoggerFactory.getLogger(HttpServer.class);
+
     private final Supplier<String> promMetricsSupplier;
 
     public HttpServer(int port, Supplier<String> promMetricsSupplier) {
         super(port);
+        logger.info("Started HTTP server at port: {}", port);
         this.promMetricsSupplier = promMetricsSupplier;
     }
 

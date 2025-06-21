@@ -73,7 +73,7 @@ public class VaultIT implements TestHelper {
                 .andThen(new CollectStoreContents())
                 .apply(vault);
 
-        assertThat(result.getResult().keySet()).containsExactlyInAnyOrder(
+        assertThat(result.getPathsAndSecrets().keySet()).containsExactlyInAnyOrder(
                 kvName + "/test1",
                 kvName + "/test2",
                 kvName + "/subfolder/test3",
@@ -104,6 +104,6 @@ public class VaultIT implements TestHelper {
                 .apply(vault);
 
         assertThat(result.isSuccess()).isTrue();
-        assertThat(result.getResult()).isEmpty();
+        assertThat(result.getPathsAndSecrets()).isEmpty();
     }
 }

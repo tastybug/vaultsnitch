@@ -1,45 +1,34 @@
 package com.tastybug.vaultpal.collection;
 
-import io.github.jopenlibs.vault.Vault;
 import io.github.jopenlibs.vault.VaultException;
 import io.github.jopenlibs.vault.api.Logical;
-import io.github.jopenlibs.vault.api.sys.mounts.Mount;
-import io.github.jopenlibs.vault.api.sys.mounts.MountType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class CollectStoreContents implements Function<CollectStores.Result, CollectStoreContents.Result> {
 
-    private static final Logger LOGGER = Logger.getLogger(CollectStoreContents.class.getSimpleName());
+    private static final Logger logger = LoggerFactory.getLogger(CollectStoreContents.class);
 
     @Override
-    public Result apply(CollectStores.Result storesDiscoveryResult) {
+    public Result apply(CollectStores.Result input) {
         try {
-            if(!storesDiscoveryResult.isSuccess()) {
-                throw storesDiscoveryResult.getException();
+            if(!input.isSuccess()) {
+                throw input.getException();
             }
-            return new Result(traverseSecretPaths(
-                    storesDiscoveryResult.getVault().logical(),
-                    storesDiscoveryResult.getKv2Mounts()));
+            List<String> kv2Mounts = input.getKv2Mounts();
+            Logical vaultClient = input.getVault().logical();
+            Map<String, Map<String, String>> pathsAndData = traverseSecretPaths(vaultClient, kv2Mounts);
+            return new Result(kv2Mounts, pathsAndData);
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Error while collecting secrets.", e);
+            logger.error("Error while collecting secrets.", e);
             return new Result(e);
         }
     }
-
-    private List<String> getKv2Mounts(Vault vault) throws VaultException {
-        Map<String, Mount> mounts = vault.sys().mounts().list().getMounts();
-        return mounts.entrySet().stream()
-                .filter(e -> e.getValue().getType() == MountType.KEY_VALUE)
-                .map(Map.Entry::getKey)
-                .toList();
-    }
-
 
     private Map<String, Map<String, String>> traverseSecretPaths(Logical logical, List<String> kv2Mounts) throws VaultException {
         Map<String, Map<String, String>> results = new HashMap<>();
@@ -67,13 +56,16 @@ public class CollectStoreContents implements Function<CollectStores.Result, Coll
 
     public static class Result {
         Exception exception;
+        List<String> stores;
         Map<String, Map<String, String>> result;
 
         Result(Exception e) {
             exception = e;
         }
 
-        Result(Map<String, Map<String, String>> result) {
+        Result(List<String> stores, Map<String, Map<String, String>> result) {
+
+            this.stores = stores;
             this.result = result;
         }
 
@@ -81,8 +73,12 @@ public class CollectStoreContents implements Function<CollectStores.Result, Coll
             return exception == null;
         }
 
-        public Map<String, Map<String, String>> getResult() {
+        public Map<String, Map<String, String>> getPathsAndSecrets() {
             return result;
+        }
+
+        public List<String> getStores() {
+            return stores;
         }
 
         public Exception getException() {
