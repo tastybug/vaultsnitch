@@ -21,3 +21,15 @@ VAULT_TOKEN_FILE=/Users/philipp/vault_token java -jar target/vaultpal-1.0-SNAPSH
 # via token env variable
 VAULT_TOKEN=myroot java -jar target/vaultpal-1.0-SNAPSHOT.jar
 ```
+
+
+```mermaid
+info 
+```
+```mermaid
+graph TD;
+    A-->B;
+    A-->C;
+    B-->D;
+    C-->D;
+```
