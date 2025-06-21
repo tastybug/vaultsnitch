@@ -1,7 +1,10 @@
 package com.tastybug.vaultpal.collection;
 
+import com.tastybug.vaultpal.collection.CollectStoreContents.Result.DataAtPath;
 import io.github.jopenlibs.vault.VaultException;
 import io.github.jopenlibs.vault.api.Logical;
+import io.github.jopenlibs.vault.response.DataMetadata;
+import io.github.jopenlibs.vault.response.LogicalResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,7 +25,7 @@ public class CollectStoreContents implements Function<CollectStores.Result, Coll
             }
             List<String> kv2Mounts = input.getKv2Mounts();
             Logical vaultClient = input.getVault().logical();
-            Map<String, Map<String, String>> pathsAndData = traverseSecretPaths(vaultClient, kv2Mounts);
+            Map<String, DataAtPath> pathsAndData = traverseSecretPaths(vaultClient, kv2Mounts);
             return new Result(kv2Mounts, pathsAndData);
         } catch (Exception e) {
             logger.error("Error while collecting secrets.", e);
@@ -30,8 +33,8 @@ public class CollectStoreContents implements Function<CollectStores.Result, Coll
         }
     }
 
-    private Map<String, Map<String, String>> traverseSecretPaths(Logical logical, List<String> kv2Mounts) throws VaultException {
-        Map<String, Map<String, String>> results = new HashMap<>();
+    private Map<String, DataAtPath> traverseSecretPaths(Logical logical, List<String> kv2Mounts) throws VaultException {
+        Map<String, DataAtPath> results = new HashMap<>();
         for (String mount : kv2Mounts) {
             traverseSecretPaths(logical, mount.endsWith("/") ? mount : mount + "/", results);
         }
@@ -39,7 +42,7 @@ public class CollectStoreContents implements Function<CollectStores.Result, Coll
     }
 
 
-    private void traverseSecretPaths(Logical logical, String path, Map<String, Map<String, String>> secretMap) throws VaultException {
+    private void traverseSecretPaths(Logical logical, String path, Map<String, DataAtPath> secretMap) throws VaultException {
         List<String> children = logical.list(path).getListData();
         if (children == null) {
             return;
@@ -48,8 +51,10 @@ public class CollectStoreContents implements Function<CollectStores.Result, Coll
             if (child.endsWith("/")) {
                 traverseSecretPaths(logical, path+child, secretMap);
             } else {
-                Map<String, String> data = logical.read(path+child).getData();
-                secretMap.put(path+child, data);
+                LogicalResponse read = logical.read(path + child);
+                Map<String, String> data = read.getData();
+                DataMetadata dataMetadata = read.getDataMetadata();
+                secretMap.put(path+child, new DataAtPath(data, dataMetadata));
             }
         }
     }
@@ -57,13 +62,13 @@ public class CollectStoreContents implements Function<CollectStores.Result, Coll
     public static class Result {
         Exception exception;
         List<String> stores;
-        Map<String, Map<String, String>> result;
+        Map<String, DataAtPath> result;
 
         Result(Exception e) {
             exception = e;
         }
 
-        Result(List<String> stores, Map<String, Map<String, String>> result) {
+        Result(List<String> stores, Map<String, DataAtPath> result) {
 
             this.stores = stores;
             this.result = result;
@@ -73,7 +78,7 @@ public class CollectStoreContents implements Function<CollectStores.Result, Coll
             return exception == null;
         }
 
-        public Map<String, Map<String, String>> getPathsAndSecrets() {
+        public Map<String, DataAtPath> getPathsAndSecrets() {
             return result;
         }
 
@@ -83,6 +88,24 @@ public class CollectStoreContents implements Function<CollectStores.Result, Coll
 
         public Exception getException() {
             return exception;
+        }
+
+        public static class DataAtPath {
+            private final Map<String, String> secretData;
+            private final DataMetadata dataMetadata;
+
+            public DataAtPath(Map<String, String> secretData, DataMetadata dataMetadata) {
+                this.secretData = secretData;
+                this.dataMetadata = dataMetadata;
+            }
+
+            public Map<String, String> getSecretData() {
+                return secretData;
+            }
+
+            public DataMetadata getDataMetadata() {
+                return dataMetadata;
+            }
         }
     }
 }
