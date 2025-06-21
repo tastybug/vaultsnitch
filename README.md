@@ -22,14 +22,10 @@ VAULT_TOKEN_FILE=/Users/philipp/vault_token java -jar target/vaultpal-1.0-SNAPSH
 VAULT_TOKEN=myroot java -jar target/vaultpal-1.0-SNAPSHOT.jar
 ```
 
-
 ```mermaid
-info 
-```
-```mermaid
-graph TD;
-    A-->B;
-    A-->C;
-    B-->D;
-    C-->D;
+sequenceDiagram
+    VaultPal->>Vault: collect visible secrets & metadata
+    VaultPal->>VaultPal: run policy checks
+    Prometheus->>VaultPal: access /metrics
+    Grafana->>Prometheus: show dashboard with policy data
 ```
