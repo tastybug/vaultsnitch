@@ -1,6 +1,6 @@
-package com.tastybug.vaultpal.collection;
+package com.tastybug.vaultsnitch.collection;
 
-import com.tastybug.vaultpal.collection.CollectStoreContents.Result.DataAtPath;
+import com.tastybug.vaultsnitch.collection.CollectStoreContents.Result.DataAtPath;
 import io.github.jopenlibs.vault.VaultException;
 import io.github.jopenlibs.vault.api.Logical;
 import io.github.jopenlibs.vault.response.DataMetadata;

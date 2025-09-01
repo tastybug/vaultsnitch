@@ -1,6 +1,6 @@
-package com.tastybug.vaultpal.evaluation;
+package com.tastybug.vaultsnitch.evaluation;
 
-import com.tastybug.vaultpal.collection.CollectStoreContents;
+import com.tastybug.vaultsnitch.collection.CollectStoreContents;
 import io.micrometer.prometheus.PrometheusMeterRegistry;
 
 import java.util.function.Function;

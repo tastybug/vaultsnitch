@@ -1,4 +1,4 @@
-package com.tastybug.vaultpal;
+package com.tastybug.vaultsnitch;
 
 import fi.iki.elonen.NanoHTTPD;
 import org.slf4j.Logger;

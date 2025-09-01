@@ -1,4 +1,4 @@
-package com.tastybug.vaultpal;
+package com.tastybug.vaultsnitch;
 
 import io.github.jopenlibs.vault.Vault;
 import io.github.jopenlibs.vault.VaultException;

@@ -1,8 +1,8 @@
-package com.tastybug.vaultpal;
+package com.tastybug.vaultsnitch;
 
-import com.tastybug.vaultpal.collection.CollectStoreContents;
-import com.tastybug.vaultpal.collection.CollectStores;
-import com.tastybug.vaultpal.evaluation.Evaluator;
+import com.tastybug.vaultsnitch.collection.CollectStoreContents;
+import com.tastybug.vaultsnitch.collection.CollectStores;
+import com.tastybug.vaultsnitch.evaluation.Evaluator;
 import io.github.jopenlibs.vault.Vault;
 import io.micrometer.prometheus.PrometheusMeterRegistry;
 import org.slf4j.Logger;
