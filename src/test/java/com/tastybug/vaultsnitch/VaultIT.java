@@ -63,22 +63,22 @@ public class VaultIT implements TestHelper {
     @Test
     void canEnumerateAllSecrets() throws VaultException {
         String kv2Name = createKvStore(vault);
-        createSecret(logical, kvName, "test1", Map.of("username", "test1"));
-        createSecret(logical, kvName, "test2", Map.of("username", "test2"));
-        createSecret(logical, kvName, "subfolder/test3", Map.of("username", "test3"));
-        createSecret(logical, kvName, "subfolder/subsubfolder/test4", Map.of("username", "test4"));
-        createSecret(logical, kv2Name, "folder/test5", Map.of("username", "test5"));
+        createSecret(logical, kvName, "foo", Map.of("username", "test1"));
+        createSecret(logical, kvName, "dev/oracle", Map.of("password", "secret"));
+        createSecret(logical, kvName, "prod/oracle", Map.of("username", "test3"));
+        createSecret(logical, kvName, "/prod/us-east1/oracle", Map.of("username", "test4"));
+        createSecret(logical, kv2Name, "/prod/oracle", Map.of("username", "test5"));
 
         CollectStoreContents.Result result = new CollectStores()
                 .andThen(new CollectStoreContents())
                 .apply(vault);
 
         assertThat(result.getPathsAndSecrets().keySet()).containsExactlyInAnyOrder(
-                kvName + "/test1",
-                kvName + "/test2",
-                kvName + "/subfolder/test3",
-                kvName + "/subfolder/subsubfolder/test4",
-                kv2Name + "/folder/test5"
+                kvName + "/foo",
+                kvName + "/dev/oracle",
+                kvName + "/prod/oracle",
+                kvName + "/prod/us-east1/oracle",
+                kv2Name + "/prod/oracle"
         );
 
         PrometheusMeterRegistry prom = new Evaluator().apply(result);

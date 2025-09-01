@@ -10,6 +10,6 @@ public class AllStoresGauge implements BiConsumer<PrometheusMeterRegistry, Colle
     public void accept(PrometheusMeterRegistry prometheusMeterRegistry,
                        CollectStoreContents.Result input) {
 
-        prometheusMeterRegistry.gauge("vaultpal_stores_total", input.getStores().size());
+        prometheusMeterRegistry.gauge("vaultsnitch_stores_total", input.getStores().size());
     }
 }

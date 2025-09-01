@@ -11,6 +11,6 @@ public class AllSecretsGauge implements BiConsumer<PrometheusMeterRegistry, Coll
     public void accept(PrometheusMeterRegistry prometheusMeterRegistry,
                        CollectStoreContents.Result input) {
 
-        prometheusMeterRegistry.gauge("vaultpal_secrets_total", input.getPathsAndSecrets().size());
+        prometheusMeterRegistry.gauge("vaultsnitch_secrets_total", input.getPathsAndSecrets().size());
     }
 }

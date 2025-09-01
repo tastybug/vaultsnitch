@@ -29,7 +29,7 @@ public interface TestHelper {
     }
 
     default String createStore(Vault vault, MountType mountType) throws VaultException {
-        String kvName = "kv2" + System.currentTimeMillis();
+        String kvName = "TeamJoker" + System.currentTimeMillis();
 
         // Create K/V v2 secret engine
         final MountPayload payload = new MountPayload()

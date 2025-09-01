@@ -27,7 +27,7 @@ Running the binary:
 ```shell
 ./mvnw clean package
 # via token file
-VAULT_TOKEN_FILE=/Users/philipp/vault_token java -jar target/vaultpal-1.0-SNAPSHOT.jar
+VAULT_TOKEN_FILE=/Users/philipp/vault_token java -jar target/vaultsnitch-1.0-SNAPSHOT.jar
 # via token env variable
-VAULT_TOKEN=myroot java -jar target/vaultpal-1.0-SNAPSHOT.jar
+VAULT_TOKEN=myroot java -jar target/vaultsnitch-1.0-SNAPSHOT.jar
 ```
