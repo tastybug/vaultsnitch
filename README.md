@@ -1,12 +1,12 @@
-# VaultPal
+# VaultSnitch
 
 Connects to a Vault instance and collects metadata for secrets that it is allowed to see.
 
 ```mermaid
 sequenceDiagram
-    VaultPal->>Vault: collect visible secrets & metadata
-    VaultPal->>VaultPal: run policy checks
-    Prometheus->>VaultPal: access /metrics
+    VaultSnitch->>Vault: collect visible secrets & metadata
+    VaultSnitch->>VaultSnitch: run policy checks
+    Prometheus->>VaultSnitch: access /metrics
     Grafana->>Prometheus: show dashboard with policy data
 ```
 
