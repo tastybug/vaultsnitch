@@ -8,8 +8,8 @@ sequenceDiagram
     VaultSnitch->>VaultSnitch: run policy checks
     Prometheus->>VaultSnitch: access /metrics
     Grafana->>Prometheus: show dashboard with policy feedback
-    AlertManager->>Prometheus: do alerting on policies
-    Teams->>AlertManager: Notify Responsible Team
+    AlertManager->>Prometheus: check for Alerting
+    AlertManager->>MSTeams: Notify Responsible Team
 ```
 
 Requires:
