@@ -13,7 +13,7 @@ import java.util.function.Function;
 
 public class CollectStores implements Function<Vault, CollectStores.Result> {
 
-    private static final Logger logger = LoggerFactory.getLogger(CollectStoreContents.class);
+    private static final Logger logger = LoggerFactory.getLogger(CollectStores.class);
 
     @Override
     public Result apply(Vault vault) {
