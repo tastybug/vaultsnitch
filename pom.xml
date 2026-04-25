@@ -145,6 +145,10 @@
                     <includes>
                         <include>**/*IT.java</include>
                     </includes>
+                    <systemPropertyVariables>
+                        <!-- OrbStack requires Docker API >= 1.40; docker-java defaults to 1.32 -->
+                        <api.version>1.41</api.version>
+                    </systemPropertyVariables>
                 </configuration>
             </plugin>
         </plugins>

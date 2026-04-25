@@ -37,12 +37,12 @@ public class PasswordLengthGauge implements BiConsumer<PrometheusMeterRegistry, 
         input.getPathsAndSecrets().entrySet().forEach(
                 dataAtPath -> consumeData(
                         promReg,
-                        getTeamAndPath(dataAtPath.getKey()),
+                        getStoreAndPath(dataAtPath.getKey()),
                         dataAtPath.getValue()));
     }
 
-    // this takes "JokerTeam/prod/oracle" and returns Pair.of("TeamName", "/prod/oracle")
-    private static Pair<String,String> getTeamAndPath(String path) {
+    // this takes "BucketName/prod/oracle" and returns Pair.of("BucketName", "/prod/oracle")
+    private static Pair<String,String> getStoreAndPath(String path) {
         String[] parts = path.split("/", 2);
         return Pair.of(parts.length > 0 ? parts[0] : "", parts.length > 1 ? "/" + parts[1] : "");
     }
