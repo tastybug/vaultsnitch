@@ -11,20 +11,16 @@ public class Evaluator implements Function<CollectStoreContents.Result, Promethe
 
     @Override
     public PrometheusMeterRegistry apply(CollectStoreContents.Result input) {
-        try {
-            if (!input.isSuccess()) {
-                throw input.getException();
-            }
-            PrometheusMeterRegistry prometheusMeterRegistry = new PrometheusMeterRegistry(DEFAULT);
-
-            new AllSecretsGauge()
-                    .andThen(new AllStoresGauge())
-                    .andThen(new PasswordLengthGauge(System.getenv()))
-                    .accept(prometheusMeterRegistry, input);
-
-            return prometheusMeterRegistry;
-        } catch (Exception e) {
-            return null;
+        if (!input.isSuccess()) {
+            throw new RuntimeException("Collection failed", input.getException());
         }
+        PrometheusMeterRegistry prometheusMeterRegistry = new PrometheusMeterRegistry(DEFAULT);
+
+        new AllSecretsGauge()
+                .andThen(new AllStoresGauge())
+                .andThen(new PasswordLengthGauge(System.getenv()))
+                .accept(prometheusMeterRegistry, input);
+
+        return prometheusMeterRegistry;
     }
 }
