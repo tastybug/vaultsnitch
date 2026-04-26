@@ -15,13 +15,43 @@ sequenceDiagram
 Requires:
 * java11 or higher
 
-## Development Setup
+## Metrics
 
-Running a test vault instance 
-```shell
-docker run -d --name vault -p 8200:8200 -e 'VAULT_DEV_ROOT_TOKEN_ID=myroot' hashicorp/vault:1.19
-docker exec  -ti vault /bin/ash
+All metrics are tagged with `store` (KV mount name), `path` (secret path within the store), and `vault_url` (address of the Vault instance being monitored).
+
+---
+
+### `vaultsnitch_secret_age_days`
+
+Age of each secret in days, measured from the time the current version was last written (= last rotated). Use this to alert on secrets that haven't been rotated within your policy window.
+
+**Example AlertManager rules:**
+
+```yaml
+- alert: SecretRotationOverdue
+  expr: vaultsnitch_secret_age_days > 90
+  labels:
+    severity: warning
+  annotations:
+    summary: "Secret not rotated in > 90 days"
+    description: "{{ $labels.store }}{{ $labels.path }} on {{ $labels.vault_url }}"
+
+- alert: SecretRotationCritical
+  expr: vaultsnitch_secret_age_days > 180
+  labels:
+    severity: critical
+  annotations:
+    summary: "Secret critically overdue for rotation"
+    description: "{{ $labels.store }}{{ $labels.path }} on {{ $labels.vault_url }}"
 ```
+
+---
+
+### `vaultsnitch_secret_version`
+
+Current version number of each secret. Use this in Grafana to confirm that rotation actually happened — the version number increases with every write.
+
+---
 
 ## Open Topics
 
@@ -30,6 +60,12 @@ docker exec  -ti vault /bin/ash
 - **Parallel deployment / scoped instances** — currently a single instance sees all secrets the token permits. Explore splitting responsibility across multiple instances (e.g. by store name or path prefix) so teams can run their own scoped deployments without exposing each other's data. Needs design work: how instances are scoped (allowlist of stores? path prefix filter?), whether metrics stay comparable across instances, and how to avoid double-counting in shared dashboards.
 
 ## Development Setup
+
+Running a test vault instance:
+```shell
+docker run -d --name vault -p 8200:8200 -e 'VAULT_DEV_ROOT_TOKEN_ID=myroot' hashicorp/vault:1.19
+docker exec  -ti vault /bin/ash
+```
 
 Running the binary:
 ```shell
