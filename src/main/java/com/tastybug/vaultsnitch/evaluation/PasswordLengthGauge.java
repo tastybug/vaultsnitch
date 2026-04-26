@@ -1,5 +1,6 @@
 package com.tastybug.vaultsnitch.evaluation;
 
+import com.tastybug.vaultsnitch.Settings;
 import com.tastybug.vaultsnitch.collection.CollectStoreContents;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.prometheus.PrometheusMeterRegistry;
@@ -48,7 +49,7 @@ public class PasswordLengthGauge implements BiConsumer<PrometheusMeterRegistry, 
     }
 
     private void consumeData(PrometheusMeterRegistry registry,
-                             Pair<String, String> teamNameAndPath,
+                             Pair<String, String> storeAndPath,
                              CollectStoreContents.Result.DataAtPath dataAtPath) {
         // we only look at field `password` by convention
         Optional.ofNullable(dataAtPath.getSecretData().get("password"))
@@ -58,8 +59,10 @@ public class PasswordLengthGauge implements BiConsumer<PrometheusMeterRegistry, 
                         matchesPattern -> {
                             registry.gauge("vaultsnitch_complexity_violation",
                                             Set.of(
-                                                Tag.of("team", teamNameAndPath.getLeft()),
-                                                Tag.of("path", teamNameAndPath.getRight())
+                                                Tag.of("store", storeAndPath.getLeft()),
+                                                Tag.of("path", storeAndPath.getRight()),
+                                                Tag.of("vault_url", Settings.getVaultUrl()),
+                                                Tag.of("team", dataAtPath.getTeam())
                                             ),
                                             matchesPattern ? 0 : 1);
                         }

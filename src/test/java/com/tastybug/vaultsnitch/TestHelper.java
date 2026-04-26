@@ -9,6 +9,10 @@ import io.github.jopenlibs.vault.api.sys.mounts.TimeToLive;
 import io.github.jopenlibs.vault.response.LogicalResponse;
 import io.github.jopenlibs.vault.response.MountResponse;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -57,6 +61,19 @@ public interface TestHelper {
         LogicalResponse response = logical.write(kvName + "/" + path, content);
         assertThat(response.getRestResponse().getStatus()).isEqualTo(SC_OK);
         return response;
+    }
+
+    default void setTeamMetadata(String vaultAddress, String token, String kvName, String path, String team) throws Exception {
+        HttpClient client = HttpClient.newHttpClient();
+        String url = vaultAddress + "/v1/" + kvName + "/metadata/" + path;
+        String body = "{\"custom_metadata\":{\"team\":\"" + team + "\"}}";
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("X-Vault-Token", token)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+        client.send(request, HttpResponse.BodyHandlers.ofString());
     }
 
 }

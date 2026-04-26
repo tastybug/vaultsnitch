@@ -3,6 +3,8 @@ package com.tastybug.vaultsnitch.collection;
 import com.tastybug.vaultsnitch.collection.CollectStoreContents.Result.DataAtPath;
 import io.github.jopenlibs.vault.VaultException;
 import io.github.jopenlibs.vault.api.Logical;
+import io.github.jopenlibs.vault.json.Json;
+import io.github.jopenlibs.vault.json.JsonValue;
 import io.github.jopenlibs.vault.response.DataMetadata;
 import io.github.jopenlibs.vault.response.LogicalResponse;
 import org.slf4j.Logger;
@@ -54,8 +56,23 @@ public class CollectStoreContents implements Function<CollectStores.Result, Coll
                 LogicalResponse read = logical.read(path + child);
                 Map<String, String> data = read.getData();
                 DataMetadata dataMetadata = read.getDataMetadata();
-                secretMap.put(path+child, new DataAtPath(data, dataMetadata));
+                String team = extractTeam(read.getRestResponse().getBody());
+                secretMap.put(path+child, new DataAtPath(data, dataMetadata, team));
             }
+        }
+    }
+
+    private static String extractTeam(byte[] body) {
+        try {
+            JsonValue customMeta = Json.parse(new String(body)).asObject()
+                    .get("data").asObject()
+                    .get("metadata").asObject()
+                    .get("custom_metadata");
+            if (customMeta == null || customMeta.isNull()) return "unknown";
+            JsonValue team = customMeta.asObject().get("team");
+            return (team == null || team.isNull()) ? "unknown" : team.asString();
+        } catch (Exception e) {
+            return "unknown";
         }
     }
 
@@ -93,10 +110,12 @@ public class CollectStoreContents implements Function<CollectStores.Result, Coll
         public static class DataAtPath {
             private final Map<String, String> secretData;
             private final DataMetadata dataMetadata;
+            private final String team;
 
-            public DataAtPath(Map<String, String> secretData, DataMetadata dataMetadata) {
+            public DataAtPath(Map<String, String> secretData, DataMetadata dataMetadata, String team) {
                 this.secretData = secretData;
                 this.dataMetadata = dataMetadata;
+                this.team = team;
             }
 
             public Map<String, String> getSecretData() {
@@ -105,6 +124,10 @@ public class CollectStoreContents implements Function<CollectStores.Result, Coll
 
             public DataMetadata getDataMetadata() {
                 return dataMetadata;
+            }
+
+            public String getTeam() {
+                return team;
             }
         }
     }

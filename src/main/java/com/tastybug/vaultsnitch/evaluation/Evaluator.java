@@ -20,6 +20,7 @@ public class Evaluator implements Function<CollectStoreContents.Result, Promethe
                 .andThen(new AllStoresGauge())
                 .andThen(new PasswordLengthGauge(System.getenv()))
                 .andThen(new SecretAgeGauge())
+                .andThen(new SecretNeverRotatedGauge())
                 .accept(prometheusMeterRegistry, input);
 
         return prometheusMeterRegistry;

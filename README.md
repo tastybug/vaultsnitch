@@ -17,7 +17,28 @@ Requires:
 
 ## Metrics
 
-All metrics are tagged with `store` (KV mount name), `path` (secret path within the store), and `vault_url` (address of the Vault instance being monitored).
+Per-secret metrics are tagged with `store` (KV mount name), `path` (secret path within the store), `vault_url` (address of the Vault instance being monitored), and `team` (see below).
+
+### Team tag
+
+VaultSnitch reads the `team` field from [KV v2 custom metadata](https://developer.hashicorp.com/vault/docs/secrets/kv/kv-v2#custom-metadata) and exposes it as a `team` label on all per-secret metrics. Secrets without this field are tagged `team="unknown"`.
+
+Set it when creating or updating a secret:
+```shell
+vault kv metadata put -custom-metadata team=payments secret/prod/db
+```
+
+With the `team` tag in place, per-team rollups are standard PromQL — no dedicated rollup metrics needed:
+```promql
+# Secrets per team
+count by (team) (vaultsnitch_secret_age_days)
+
+# Stale secrets per team (older than 90 days)
+count by (team) (vaultsnitch_secret_age_days > 90)
+
+# Complexity violations per team
+sum by (team) (vaultsnitch_complexity_violation)
+```
 
 ---
 
@@ -50,6 +71,40 @@ Age of each secret in days, measured from the time the current version was last 
 ### `vaultsnitch_secret_version`
 
 Current version number of each secret. Use this in Grafana to confirm that rotation actually happened — the version number increases with every write.
+
+---
+
+### `vaultsnitch_secret_never_rotated`
+
+`1` if the secret is still at version 1 (never been rotated since creation), `0` otherwise. Different from age: a recently created secret at v1 is expected, but a six-month-old secret at v1 is a policy gap. Combine with `vaultsnitch_secret_age_days` for precise alerting:
+
+```yaml
+- alert: OldSecretNeverRotated
+  expr: vaultsnitch_secret_never_rotated == 1 and vaultsnitch_secret_age_days > 30
+  labels:
+    severity: warning
+  annotations:
+    summary: "Secret has never been rotated"
+    description: "{{ $labels.team }} — {{ $labels.store }}{{ $labels.path }} on {{ $labels.vault_url }}"
+```
+
+---
+
+### `vaultsnitch_complexity_violation`
+
+`1` if the secret's `password` field fails the configured complexity pattern, `0` if it passes. Secrets without a `password` field are not evaluated. Tagged with `store`, `path`, `vault_url`, and `team`.
+
+**Example AlertManager rule:**
+
+```yaml
+- alert: ComplexityViolationDetected
+  expr: vaultsnitch_complexity_violation == 1
+  labels:
+    severity: warning
+  annotations:
+    summary: "Password does not meet complexity requirements"
+    description: "{{ $labels.team }} — {{ $labels.store }}{{ $labels.path }} on {{ $labels.vault_url }}"
+```
 
 ---
 

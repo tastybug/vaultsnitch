@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.testcontainers.utility.DockerImageName.parse;
 
 @Testcontainers
-public class SecretAgeGaugeIT implements TestHelper {
+public class SecretNeverRotatedGaugeIT implements TestHelper {
 
     private static final String VAULT_CONTAINER_NAME = "hashicorp/vault:1.19";
     private static final String TOKEN = "myroot";
@@ -58,53 +58,33 @@ public class SecretAgeGaugeIT implements TestHelper {
     }
 
     @Test
-    void secretAgeIsExposedWithCorrectTags() throws VaultException {
+    void freshSecretAtVersionOneIsNeverRotated() throws VaultException {
         createSecret(logical, kvName, "prod/db", Map.of("password", "s3cr3t"));
 
         PrometheusMeterRegistry prom = evaluate();
 
-        assertThat(prom.scrape()).contains("vaultsnitch_secret_age_days");
-        assertThat(prom.scrape()).contains("store=\"" + kvName + "\"");
-        assertThat(prom.scrape()).contains("path=\"/prod/db\"");
-        assertThat(prom.scrape()).contains("vault_url=");
+        assertThat(prom.scrape()).containsPattern("vaultsnitch_secret_never_rotated\\{[^}]+\\} 1\\.0");
     }
 
     @Test
-    void secretWithoutCustomMetadataHasUnknownTeam() throws VaultException {
+    void secretAtVersionTwoIsConsideredRotated() throws VaultException {
         createSecret(logical, kvName, "prod/db", Map.of("password", "s3cr3t"));
+        createSecret(logical, kvName, "prod/db", Map.of("password", "n3wSecr3t"));
 
         PrometheusMeterRegistry prom = evaluate();
 
-        assertThat(prom.scrape()).contains("team=\"unknown\"");
+        assertThat(prom.scrape()).containsPattern("vaultsnitch_secret_never_rotated\\{[^}]+\\} 0\\.0");
     }
 
     @Test
-    void secretWithTeamMetadataHasTeamTag() throws Exception {
+    void neverRotatedGaugeCarriesTeamTag() throws Exception {
         createSecret(logical, kvName, "prod/db", Map.of("password", "s3cr3t"));
-        setTeamMetadata("http://127.0.0.1:" + vaultInstance.getMappedPort(8200), TOKEN, kvName, "prod/db", "payments");
+        setTeamMetadata("http://127.0.0.1:" + vaultInstance.getMappedPort(8200), TOKEN, kvName, "prod/db", "platform");
 
         PrometheusMeterRegistry prom = evaluate();
 
-        assertThat(prom.scrape()).contains("team=\"payments\"");
-    }
-
-    @Test
-    void secretAgeIsNonNegative() throws VaultException {
-        createSecret(logical, kvName, "dev/api-key", Map.of("key", "abc"));
-
-        PrometheusMeterRegistry prom = evaluate();
-
-        assertThat(prom.scrape()).containsPattern("vaultsnitch_secret_age_days\\{[^}]+\\} \\d+\\.0");
-    }
-
-    @Test
-    void secretVersionIsExposed() throws VaultException {
-        createSecret(logical, kvName, "prod/db", Map.of("password", "s3cr3t"));
-
-        PrometheusMeterRegistry prom = evaluate();
-
-        assertThat(prom.scrape()).contains("vaultsnitch_secret_version");
-        assertThat(prom.scrape()).containsPattern("vaultsnitch_secret_version\\{[^}]+\\} 1\\.0");
+        assertThat(prom.scrape()).contains("vaultsnitch_secret_never_rotated");
+        assertThat(prom.scrape()).contains("team=\"platform\"");
     }
 
     private PrometheusMeterRegistry evaluate() {
