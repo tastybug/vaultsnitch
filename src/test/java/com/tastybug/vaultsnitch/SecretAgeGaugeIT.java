@@ -40,7 +40,7 @@ public class SecretAgeGaugeIT implements TestHelper {
     @BeforeAll
     static void beforeAll() throws VaultException {
         VaultConfig vaultConfig = new VaultConfig()
-                .address("http://127.0.0.1:" + vaultInstance.getMappedPort(8200))
+                .address("http://" + vaultInstance.getHost() + ":" + vaultInstance.getMappedPort(8200))
                 .sslConfig(new SslConfig().build())
                 .token(TOKEN);
         vault = Vault.create(vaultConfig);
@@ -81,7 +81,7 @@ public class SecretAgeGaugeIT implements TestHelper {
     @Test
     void secretWithTeamMetadataHasTeamTag() throws Exception {
         createSecret(logical, kvName, "prod/db", Map.of("password", "s3cr3t"));
-        setTeamMetadata("http://127.0.0.1:" + vaultInstance.getMappedPort(8200), TOKEN, kvName, "prod/db", "payments");
+        setTeamMetadata("http://" + vaultInstance.getHost() + ":" + vaultInstance.getMappedPort(8200), TOKEN, kvName, "prod/db", "payments");
 
         PrometheusMeterRegistry prom = evaluate();
 
