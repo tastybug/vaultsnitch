@@ -110,7 +110,6 @@ Current version number of each secret. Use this in Grafana to confirm that rotat
 
 ## Open Topics
 
-- **CI: run `verify` in a container** — the GitHub Action currently runs `mvn -B clean verify package` directly on the runner, which means it needs Docker available for TestContainers. Switch to a container-based job (e.g. `services: docker` or a DinD sidecar) so integration tests run reliably in CI without depending on the runner's Docker setup.
 - **Distribute as a container image** — add a `Dockerfile` and a GitHub Actions workflow that builds the fat JAR, packages it into a container image, and pushes it to GitHub Container Registry (ghcr.io) on every merge to `main`.
 - **Parallel deployment / scoped instances** — currently a single instance sees all secrets the token permits. Explore splitting responsibility across multiple instances (e.g. by store name or path prefix) so teams can run their own scoped deployments without exposing each other's data. Needs design work: how instances are scoped (allowlist of stores? path prefix filter?), whether metrics stay comparable across instances, and how to avoid double-counting in shared dashboards.
 
