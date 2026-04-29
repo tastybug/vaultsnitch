@@ -28,7 +28,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 VAULT_TOKEN=myroot java -jar target/vaultsnitch-1.0-SNAPSHOT.jar
 ```
 
-Integration tests (files matching `**/*IT.java`) use TestContainers to spin up a real Vault Docker instance — Docker must be running locally.
+Integration tests (files matching `**/*IT.java`) use TestContainers to spin up a real Vault instance — a container runtime (Docker, OrbStack, or Podman via `podman machine`) must be running locally. For Podman, also export `DOCKER_HOST` before running tests (see README).
 
 ## Architecture
 

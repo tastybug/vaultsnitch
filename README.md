@@ -130,3 +130,19 @@ VAULT_TOKEN_FILE=/Users/philipp/vault_token java -jar target/vaultsnitch-1.0-SNA
 # via token env variable
 VAULT_TOKEN=myroot java -jar target/vaultsnitch-1.0-SNAPSHOT.jar
 ```
+
+### Using Podman instead of Docker
+
+Export `DOCKER_HOST` so Testcontainers can find Podman's socket, then use `podman` in place of `docker`:
+
+```shell
+export DOCKER_HOST=$(podman machine inspect --format 'unix://{{.ConnectionInfo.PodmanSocket.Path}}')
+```
+
+(Podman Desktop sets this automatically — check `echo $DOCKER_HOST` first. If it already points to a Podman socket, no action is needed.)
+
+Start Vault and run tests as usual:
+```shell
+podman run -d --name vault -p 8200:8200 -e 'VAULT_DEV_ROOT_TOKEN_ID=myroot' hashicorp/vault:1.19
+./mvnw clean verify
+```
