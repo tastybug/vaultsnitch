@@ -3,6 +3,7 @@ package com.tastybug.vaultsnitch;
 import com.tastybug.vaultsnitch.collection.CollectStoreContents;
 import com.tastybug.vaultsnitch.collection.CollectStores;
 import com.tastybug.vaultsnitch.evaluation.Evaluator;
+import com.tastybug.vaultsnitch.evaluation.PasswordComplexityGauge;
 import io.github.jopenlibs.vault.SslConfig;
 import io.github.jopenlibs.vault.Vault;
 import io.github.jopenlibs.vault.VaultConfig;
@@ -19,14 +20,17 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.Map;
 
+import static io.micrometer.prometheus.PrometheusConfig.DEFAULT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testcontainers.utility.DockerImageName.parse;
 
 @Testcontainers
-public class SecretAgeGaugeIT implements TestHelper {
+public class PasswordComplexityGaugeIT implements TestHelper {
 
     private static final String VAULT_CONTAINER_NAME = "hashicorp/vault:1.19";
     private static final String TOKEN = "myroot";
+    private static final String COMPLIANT_PASSWORD = "ComplexPassword12345678";
+    private static final String NON_COMPLIANT_PASSWORD = "simple";
 
     @Container
     private static final GenericContainer<?> vaultInstance = new GenericContainer<>(parse(VAULT_CONTAINER_NAME))
@@ -58,53 +62,52 @@ public class SecretAgeGaugeIT implements TestHelper {
     }
 
     @Test
-    void secretAgeIsExposedWithCorrectTags() throws VaultException {
-        createSecret(logical, kvName, "prod/db", Map.of("password", "s3cr3t"));
+    void compliantPasswordEmitsViolationZeroWithCorrectTags() throws VaultException {
+        createSecret(logical, kvName, "prod/db", Map.of("password", COMPLIANT_PASSWORD));
 
         PrometheusMeterRegistry prom = evaluate();
 
-        assertThat(prom.scrape()).contains("vaultsnitch_secret_age_days");
+        assertThat(prom.scrape()).containsPattern("vaultsnitch_complexity_violation\\{[^}]+\\} 0\\.0");
         assertThat(prom.scrape()).contains("store=\"" + kvName + "\"");
         assertThat(prom.scrape()).contains("path=\"/prod/db\"");
         assertThat(prom.scrape()).contains("vault_url=");
+        assertThat(prom.scrape()).contains("team=");
     }
 
     @Test
-    void secretWithoutCustomMetadataHasUnknownTeam() throws VaultException {
-        createSecret(logical, kvName, "prod/db", Map.of("password", "s3cr3t"));
+    void nonCompliantPasswordEmitsViolationOne() throws VaultException {
+        createSecret(logical, kvName, "prod/db", Map.of("password", NON_COMPLIANT_PASSWORD));
 
         PrometheusMeterRegistry prom = evaluate();
 
-        assertThat(prom.scrape()).contains("team=\"unknown\"");
+        assertThat(prom.scrape()).containsPattern("vaultsnitch_complexity_violation\\{[^}]+\\} 1\\.0");
     }
 
     @Test
-    void secretWithTeamMetadataHasTeamTag() throws Exception {
-        createSecret(logical, kvName, "prod/db", Map.of("password", "s3cr3t"));
-        setTeamMetadata("http://" + vaultInstance.getHost() + ":" + vaultInstance.getMappedPort(8200), TOKEN, kvName, "prod/db", "payments");
+    void secretWithNoPasswordFieldProducesNoGaugeEntry() throws VaultException {
+        createSecret(logical, kvName, "prod/db", Map.of("api_key", "somevalue"));
 
         PrometheusMeterRegistry prom = evaluate();
 
-        assertThat(prom.scrape()).contains("team=\"payments\"");
+        assertThat(prom.scrape()).doesNotContain("vaultsnitch_complexity_violation");
     }
 
     @Test
-    void secretAgeIsNonNegative() throws VaultException {
-        createSecret(logical, kvName, "dev/api-key", Map.of("key", "abc"));
+    void gaugeIsAbsentWhenDisabled() throws VaultException {
+        createSecret(logical, kvName, "prod/db", Map.of("password", NON_COMPLIANT_PASSWORD));
 
-        PrometheusMeterRegistry prom = evaluate();
+        PrometheusMeterRegistry prom = evaluateWithEnv(Map.of("PasswordComplexityGauge.Enabled", "false"));
 
-        assertThat(prom.scrape()).containsPattern("vaultsnitch_secret_age_days\\{[^}]+\\} \\d+\\.0");
+        assertThat(prom.scrape()).doesNotContain("vaultsnitch_complexity_violation");
     }
 
     @Test
-    void secretVersionIsExposed() throws VaultException {
-        createSecret(logical, kvName, "prod/db", Map.of("password", "s3cr3t"));
+    void customRegexIsRespected() throws VaultException {
+        createSecret(logical, kvName, "prod/db", Map.of("password", NON_COMPLIANT_PASSWORD));
 
-        PrometheusMeterRegistry prom = evaluate();
+        PrometheusMeterRegistry prom = evaluateWithEnv(Map.of("PasswordComplexityGauge.Regex", ".*"));
 
-        assertThat(prom.scrape()).contains("vaultsnitch_secret_version");
-        assertThat(prom.scrape()).containsPattern("vaultsnitch_secret_version\\{[^}]+\\} 1\\.0");
+        assertThat(prom.scrape()).containsPattern("vaultsnitch_complexity_violation\\{[^}]+\\} 0\\.0");
     }
 
     private PrometheusMeterRegistry evaluate() {
@@ -112,5 +115,14 @@ public class SecretAgeGaugeIT implements TestHelper {
                 .andThen(new CollectStoreContents())
                 .apply(vault);
         return new Evaluator().apply(result);
+    }
+
+    private PrometheusMeterRegistry evaluateWithEnv(Map<String, String> env) {
+        CollectStoreContents.Result result = new CollectStores()
+                .andThen(new CollectStoreContents())
+                .apply(vault);
+        PrometheusMeterRegistry prom = new PrometheusMeterRegistry(DEFAULT);
+        new PasswordComplexityGauge(env).accept(prom, result);
+        return prom;
     }
 }

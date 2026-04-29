@@ -65,8 +65,8 @@ The application runs a fixed-interval evaluation loop (default 300s):
 | `VAULT_TOKEN` or `VAULT_TOKEN_FILE` | _(required)_ | Auth token or path to file containing it |
 | `POLL_INTERVAL_SECS` | `300` | Evaluation loop interval |
 | `SERVER_PORT` | `8080` | HTTP server port |
-| `PasswordLengthGauge.Enabled` | `true` | Toggle complexity checks |
-| `PasswordLengthGauge.Regex` | `^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z]).{22,}$` | Complexity pattern |
+| `PasswordComplexityGauge.Enabled` | `true` | Toggle complexity checks |
+| `PasswordComplexityGauge.Regex` | `^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z]).{22,}$` | Complexity pattern |
 
 ## Error Handling Convention
 
