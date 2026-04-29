@@ -13,17 +13,17 @@ import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class PasswordLengthGauge implements BiConsumer<PrometheusMeterRegistry, CollectStoreContents.Result> {
+public class PasswordComplexityGauge implements BiConsumer<PrometheusMeterRegistry, CollectStoreContents.Result> {
 
-    private static final String ENABLED = "PasswordLengthGauge.Enabled";
-    private static final String REGEX = "PasswordLengthGauge.Regex";
+    private static final String ENABLED = "PasswordComplexityGauge.Enabled";
+    private static final String REGEX = "PasswordComplexityGauge.Regex";
     private static final String DEFAULT_PATTERN_RAW = "^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z]).{22,}$";
 
 
     private final boolean IS_ENABLED;
     private final Pattern PATTERN;
 
-    public PasswordLengthGauge(Map<String, String> envProperties) {
+    public PasswordComplexityGauge(Map<String, String> envProperties) {
         IS_ENABLED = Boolean.parseBoolean(envProperties.getOrDefault(ENABLED, "true"));
         String patternRaw = envProperties.getOrDefault(REGEX, DEFAULT_PATTERN_RAW);
         PATTERN = Pattern.compile(patternRaw);
