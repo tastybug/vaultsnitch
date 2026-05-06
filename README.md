@@ -17,7 +17,16 @@ Requires:
 
 ## Metrics
 
-Per-secret metrics are tagged with `store` (KV mount name), `path` (secret path within the store), `vault_url` (address of the Vault instance being monitored), and `team` (see below).
+### Common tags
+
+All per-secret metrics carry the following labels:
+
+| Tag | Description |
+|-----|-------------|
+| `store` | KV v2 mount point name (e.g. `secret`, `database`) |
+| `path` | Secret path within the store (e.g. `/prod/db`) |
+| `vault_url` | Address of the monitored Vault instance (`VAULT_URL` env var) |
+| `team` | Value of the `team` field from [KV v2 custom metadata](#team-tag); `"unknown"` if unset |
 
 ### Team tag
 
@@ -42,7 +51,21 @@ sum by (team) (vaultsnitch_complexity_violation)
 
 ---
 
+### `vaultsnitch_secrets_total`
+
+Total number of secrets discovered across all stores. No tags.
+
+---
+
+### `vaultsnitch_stores_total`
+
+Total number of KV v2 mount points accessible. No tags.
+
+---
+
 ### `vaultsnitch_secret_age_days`
+
+Tags: `store`, `path`, `vault_url`, `team` — see [Common tags](#common-tags).
 
 Age of each secret in days, measured from the time the current version was last written (= last rotated). Use this to alert on secrets that haven't been rotated within your policy window.
 
@@ -70,11 +93,15 @@ Age of each secret in days, measured from the time the current version was last 
 
 ### `vaultsnitch_secret_version`
 
+Tags: `store`, `path`, `vault_url`, `team` — see [Common tags](#common-tags).
+
 Current version number of each secret. Use this in Grafana to confirm that rotation actually happened — the version number increases with every write.
 
 ---
 
 ### `vaultsnitch_secret_never_rotated`
+
+Tags: `store`, `path`, `vault_url`, `team` — see [Common tags](#common-tags).
 
 `1` if the secret is still at version 1 (never been rotated since creation), `0` otherwise. Different from age: a recently created secret at v1 is expected, but a six-month-old secret at v1 is a policy gap. Combine with `vaultsnitch_secret_age_days` for precise alerting:
 
@@ -92,7 +119,9 @@ Current version number of each secret. Use this in Grafana to confirm that rotat
 
 ### `vaultsnitch_complexity_violation`
 
-`1` if the secret's `password` field fails the configured complexity pattern, `0` if it passes. Secrets without a `password` field are not evaluated. Tagged with `store`, `path`, `vault_url`, and `team`.
+Tags: `store`, `path`, `vault_url`, `team` — see [Common tags](#common-tags).
+
+`1` if the secret's `password` field fails the configured complexity pattern, `0` if it passes. Secrets without a `password` field are not evaluated.
 
 **Example AlertManager rule:**
 
