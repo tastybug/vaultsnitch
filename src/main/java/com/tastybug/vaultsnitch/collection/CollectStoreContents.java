@@ -56,8 +56,10 @@ public class CollectStoreContents implements Function<CollectStores.Result, Coll
                 LogicalResponse read = logical.read(path + child);
                 Map<String, String> data = read.getData();
                 DataMetadata dataMetadata = read.getDataMetadata();
-                String team = extractTeam(read.getRestResponse().getBody());
-                secretMap.put(path+child, new DataAtPath(data, dataMetadata, team));
+                byte[] responseBody = read.getRestResponse().getBody();
+                String team = extractTeam(responseBody);
+                String expiresAt = extractExpiresAt(responseBody);
+                secretMap.put(path+child, new DataAtPath(data, dataMetadata, team, expiresAt));
             }
         }
     }
@@ -73,6 +75,20 @@ public class CollectStoreContents implements Function<CollectStores.Result, Coll
             return (team == null || team.isNull()) ? "unknown" : team.asString();
         } catch (Exception e) {
             return "unknown";
+        }
+    }
+
+    private static String extractExpiresAt(byte[] body) {
+        try {
+            JsonValue customMeta = Json.parse(new String(body)).asObject()
+                    .get("data").asObject()
+                    .get("metadata").asObject()
+                    .get("custom_metadata");
+            if (customMeta == null || customMeta.isNull()) return null;
+            JsonValue expiresAt = customMeta.asObject().get("expires_at_date");
+            return (expiresAt == null || expiresAt.isNull()) ? null : expiresAt.asString();
+        } catch (Exception e) {
+            return null;
         }
     }
 
@@ -111,11 +127,13 @@ public class CollectStoreContents implements Function<CollectStores.Result, Coll
             private final Map<String, String> secretData;
             private final DataMetadata dataMetadata;
             private final String team;
+            private final String expiresAt;
 
-            public DataAtPath(Map<String, String> secretData, DataMetadata dataMetadata, String team) {
+            public DataAtPath(Map<String, String> secretData, DataMetadata dataMetadata, String team, String expiresAt) {
                 this.secretData = secretData;
                 this.dataMetadata = dataMetadata;
                 this.team = team;
+                this.expiresAt = expiresAt;
             }
 
             public Map<String, String> getSecretData() {
@@ -128,6 +146,10 @@ public class CollectStoreContents implements Function<CollectStores.Result, Coll
 
             public String getTeam() {
                 return team;
+            }
+
+            public String getExpiresAt() {
+                return expiresAt;
             }
         }
     }

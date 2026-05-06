@@ -63,10 +63,18 @@ public interface TestHelper {
         return response;
     }
 
-    default void setTeamMetadata(String vaultAddress, String token, String kvName, String path, String team) throws Exception {
+    default void setCustomMetadata(String vaultAddress, String token, String kvName, String path, Map<String, String> metadata) throws Exception {
         HttpClient client = HttpClient.newHttpClient();
         String url = vaultAddress + "/v1/" + kvName + "/metadata/" + path;
-        String body = "{\"custom_metadata\":{\"team\":\"" + team + "\"}}";
+        StringBuilder json = new StringBuilder("{");
+        boolean first = true;
+        for (Map.Entry<String, String> entry : metadata.entrySet()) {
+            if (!first) json.append(",");
+            json.append("\"").append(entry.getKey()).append("\":\"").append(entry.getValue()).append("\"");
+            first = false;
+        }
+        json.append("}");
+        String body = "{\"custom_metadata\":" + json + "}";
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
                 .header("X-Vault-Token", token)
@@ -74,6 +82,10 @@ public interface TestHelper {
                 .POST(HttpRequest.BodyPublishers.ofString(body))
                 .build();
         client.send(request, HttpResponse.BodyHandlers.ofString());
+    }
+
+    default void setTeamMetadata(String vaultAddress, String token, String kvName, String path, String team) throws Exception {
+        setCustomMetadata(vaultAddress, token, kvName, path, Map.of("team", team));
     }
 
 }

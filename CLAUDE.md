@@ -55,7 +55,12 @@ The application runs a fixed-interval evaluation loop (default 300s):
 3. Wire the new gauge into `Evaluator`'s chain.
 4. Expose any tuning knobs via environment variables read through `Settings`.
 
-`TTLExpirationGauge` is a current skeleton intended as the next gauge implementation.
+### `custom_metadata` conventions
+
+| Field | Format | Purpose |
+|---|---|---|
+| `team` | free-text | Team ownership tag for all per-secret metrics |
+| `expires_at_date` | `YYYY-MM-DD` (ISO 8601 date) | Opt-in secret expiry date for `SecretExpiryGauge` |
 
 ## Runtime Configuration
 

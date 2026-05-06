@@ -137,6 +137,39 @@ Tags: `store`, `path`, `vault_url`, `team` — see [Common tags](#common-tags).
 
 ---
 
+### `vaultsnitch_secret_expires_in_days`
+
+Tags: `store`, `path`, `vault_url`, `team` — see [Common tags](#common-tags).
+
+Number of days until the secret expires, based on the `expires_at_date` field in [KV v2 custom metadata](https://developer.hashicorp.com/vault/docs/secrets/kv/kv-v2#custom-metadata). Positive values mean the secret is still valid, negative values mean it has already expired, zero means it expires today. Secrets without `expires_at_date` emit no metric (opt-in).
+
+Set the expiry date:
+```shell
+vault kv metadata put -custom-metadata=expires_at_date=2025-12-31 secret/prod/db
+```
+
+**Example AlertManager rules:**
+
+```yaml
+- alert: SecretExpiringsoon
+  expr: vaultsnitch_secret_expires_in_days < 30 and vaultsnitch_secret_expires_in_days >= 0
+  labels:
+    severity: warning
+  annotations:
+    summary: "Secret expires within 30 days"
+    description: "{{ $labels.team }} — {{ $labels.store }}{{ $labels.path }} on {{ $labels.vault_url }}"
+
+- alert: SecretExpired
+  expr: vaultsnitch_secret_expires_in_days < 0
+  labels:
+    severity: critical
+  annotations:
+    summary: "Secret has expired"
+    description: "{{ $labels.team }} — {{ $labels.store }}{{ $labels.path }} on {{ $labels.vault_url }}"
+```
+
+---
+
 ## Open Topics
 
 - **Distribute as a container image** — add a `Dockerfile` and a GitHub Actions workflow that builds the fat JAR, packages it into a container image, and pushes it to GitHub Container Registry (ghcr.io) on every merge to `main`.
